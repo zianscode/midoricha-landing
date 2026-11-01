@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { makeRng } from '~/three/core/random'
-import { createBambooTexture } from '~/three/textures/bamboo'
+import { createBambooTexture } from '~/three/textures'
 
 export function createChasen({ seed = 4, detail = 'high' as 'high' | 'low' } = {}) {
   const rand = makeRng(seed)

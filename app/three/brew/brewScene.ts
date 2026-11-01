@@ -12,9 +12,7 @@ import { createPowderMound } from '~/three/objects/matchaPowder'
 import { createNatsume } from '~/three/objects/natsume'
 import { createParticles } from '~/three/objects/particles'
 import { createSteam } from '~/three/objects/steam'
-import { createRadialAlpha } from '~/three/textures/masks'
-import { createFoamTextures } from '~/three/textures/matcha'
-import { createTatamiTextures } from '~/three/textures/tatami'
+import { createFoamTextures, createRadialAlpha, createTatamiTextures } from '~/three/textures'
 import type { BrewSceneState, BrewShot } from '~/types/brew'
 
 export const options: StageOptions = { fov: 30, shadows: true, environment: 0.16, exposure: 1.05 }

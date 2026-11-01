@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { finishGeometry } from '~/three/core/geometry'
 import { smoothstep } from '~/three/core/math'
-import { createBambooTexture } from '~/three/textures/bamboo'
+import { createBambooTexture } from '~/three/textures'
 
 export function createChashaku() {
   const length = 1.9

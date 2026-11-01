@@ -1,15 +1,14 @@
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { makeCanvas, toTexture } from '~/three/core/canvas'
 import { disposeObject } from '~/three/core/dispose'
 import { createContactShadow } from '~/three/core/lighting'
-import { makeRng } from '~/three/core/random'
+import { nextFrame, prepareScene } from '~/three/core/prepare'
 import { createChasen } from '~/three/objects/chasen'
 import { createChashaku } from '~/three/objects/chashaku'
 import { createChawan } from '~/three/objects/chawan'
 import { createBotanicalKit, createLeaf } from '~/three/objects/matchaLeaf'
-import { createNetAlpha, createRadialAlpha } from '~/three/textures/masks'
+import { createDustingTexture, createEnsoTextures, createNetAlpha, createRadialAlpha } from '~/three/textures'
 
 export type StillKind = 'ceremonial' | 'latte' | 'culinary' | 'creative'
 
@@ -45,51 +44,6 @@ function topDown(aspect: number, height = 8, fov = 26) {
   camera.position.set(0, height, 0.9)
   camera.lookAt(0, 0, 0)
   return camera
-}
-
-function ensoTexture() {
-  const S = 1024
-  const rand = makeRng(88)
-  const color = makeCanvas(S, S)
-  const bump = makeCanvas(S, S)
-  bump.ctx.fillStyle = '#000'
-  bump.ctx.fillRect(0, 0, S, S)
-  const start = -2.2
-  const sweep = Math.PI * 1.82
-  for (let i = 0; i < 150000; i++) {
-    const u = rand()
-    const a = start + u * sweep
-    const landing = Math.min(1, u / 0.06)
-    const weight = Math.sqrt(landing) * Math.pow(1 - u, 0.5) * (0.8 + 0.2 * Math.sin(u * 7))
-    const width = 6 + 46 * weight
-    if (u > 0.75 && rand() > (1 - u) * 3.2) continue
-    const spread = (rand() + rand() - 1) * width
-    const r = 270 + spread + Math.sin(u * 11) * 7
-    const x = S / 2 + Math.cos(a) * r
-    const y = S / 2 + Math.sin(a) * r
-    const s = 0.8 + rand() * 2
-    color.ctx.fillStyle = rand() > 0.3 ? 'rgba(112, 142, 48, 0.8)' : 'rgba(150, 178, 82, 0.6)'
-    color.ctx.fillRect(x, y, s, s)
-    bump.ctx.fillStyle = 'rgba(255,255,255,0.18)'
-    bump.ctx.fillRect(x, y, s * 1.6, s * 1.6)
-  }
-  return { map: toTexture(color.canvas), bump: toTexture(bump.canvas, { color: false }) }
-}
-
-function dustingTexture() {
-  const S = 1024
-  const rand = makeRng(54)
-  const { canvas, ctx } = makeCanvas(S, S)
-  for (let i = 0; i < 150000; i++) {
-    const a = rand() * Math.PI * 2
-    const d = Math.pow(rand(), 0.85) * S * 0.36 * (1 + (rand() - 0.5) * 0.1)
-    const x = S / 2 + Math.cos(a) * d
-    const y = S / 2 + Math.sin(a) * d
-    ctx.fillStyle = rand() > 0.35 ? 'rgba(104, 136, 42, 0.85)' : 'rgba(80, 108, 34, 0.8)'
-    const s = 0.8 + rand() * 1.6
-    ctx.fillRect(x, y, s, s)
-  }
-  return toTexture(canvas)
 }
 
 const SHOTS: Record<StillKind, (aspect: number) => Shot> = {
@@ -185,7 +139,7 @@ const SHOTS: Record<StillKind, (aspect: number) => Shot> = {
 
     const dusting = new THREE.Mesh(
       new THREE.PlaneGeometry(3.6, 3.6),
-      new THREE.MeshStandardMaterial({ map: dustingTexture(), transparent: true, roughness: 1, depthWrite: false })
+      new THREE.MeshStandardMaterial({ map: createDustingTexture(), transparent: true, roughness: 1, depthWrite: false })
     )
     dusting.rotation.x = -Math.PI / 2
     dusting.position.set(-0.35, 0.004, 0.4)
@@ -227,7 +181,7 @@ const SHOTS: Record<StillKind, (aspect: number) => Shot> = {
     keyLight(scene, [-4, 8, 3], 2.2)
     surface(scene, '#1d3c2e')
 
-    const enso = ensoTexture()
+    const enso = createEnsoTextures()
     const stroke = new THREE.Mesh(
       new THREE.PlaneGeometry(4, 4),
       new THREE.MeshStandardMaterial({
@@ -253,8 +207,15 @@ const SHOTS: Record<StillKind, (aspect: number) => Shot> = {
   }
 }
 
+function snapshot(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('still capture failed'))), 'image/jpeg', 0.9)
+  )
+}
+
 export async function renderStills(kinds: StillKind[], width: number, height: number) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+  renderer.debug.checkShaderErrors = import.meta.dev
   renderer.setPixelRatio(1)
   renderer.setSize(width, height, false)
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -270,10 +231,11 @@ export async function renderStills(kinds: StillKind[], width: number, height: nu
     const { scene, camera } = SHOTS[kind](width / height)
     scene.environment = env.texture
     scene.environmentIntensity = 0.45
+    await prepareScene(renderer, scene, camera)
     renderer.render(scene, camera)
-    out[kind] = renderer.domElement.toDataURL('image/jpeg', 0.9)
+    out[kind] = URL.createObjectURL(await snapshot(renderer.domElement))
     disposeObject(scene)
-    await new Promise((r) => setTimeout(r, 16))
+    await nextFrame()
   }
 
   env.dispose()

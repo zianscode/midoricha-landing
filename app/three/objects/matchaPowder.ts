@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { finishGeometry } from '~/three/core/geometry'
 import { noise2 } from '~/three/core/noise'
 import { makeRng } from '~/three/core/random'
-import { createPowderTextures } from '~/three/textures/matcha'
+import { createPowderTextures } from '~/three/textures'
 
 export function createPowderMaterial(seed = 13, repeat = 3) {
   const tex = createPowderTextures(seed)

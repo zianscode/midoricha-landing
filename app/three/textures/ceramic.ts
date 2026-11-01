@@ -1,4 +1,4 @@
-import { makeCanvas, toTexture } from '~/three/core/canvas'
+import { makeCanvas } from '~/three/core/canvas'
 import { fbm2, noise2 } from '~/three/core/noise'
 import { makeRng } from '~/three/core/random'
 
@@ -10,7 +10,7 @@ const GLAZES: Record<GlazeName, { base: string; light: string; dark: string; rim
   celadon: { base: '#a9b3a0', light: '#c1c9b8', dark: '#879180', rim: '#6d6150', clay: '#b08a63', inner: '#b2bba9' }
 }
 
-export function createCeramicTextures(glaze: GlazeName, rimV: number, footV: number, seed = 5) {
+export function paintCeramic(glaze: GlazeName, rimV: number, footV: number, seed = 5) {
   const W = 1024
   const H = 512
   const c = GLAZES[glaze]
@@ -108,8 +108,8 @@ export function createCeramicTextures(glaze: GlazeName, rimV: number, footV: num
   rough.ctx.fillRect(0, 0, W, vy(rimV + 0.2))
 
   return {
-    map: toTexture(color.canvas),
-    roughness: toTexture(rough.canvas, { color: false }),
-    bump: toTexture(bump.canvas, { color: false })
+    map: color.canvas,
+    roughness: rough.canvas,
+    bump: bump.canvas
   }
 }

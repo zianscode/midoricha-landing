@@ -6,7 +6,7 @@ import { createChawan } from '~/three/objects/chawan'
 import { createPowderMound } from '~/three/objects/matchaPowder'
 import { createParticles } from '~/three/objects/particles'
 import { createStoneMill } from '~/three/objects/stoneMill'
-import { createRadialAlpha } from '~/three/textures/masks'
+import { createRadialAlpha } from '~/three/textures'
 
 export const options: StageOptions = { fov: 26, shadows: true, environment: 0.4, exposure: 1.02, progressDamping: 4 }
 

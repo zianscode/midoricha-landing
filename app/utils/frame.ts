@@ -16,3 +16,8 @@ export function createFrameScheduler(callback: () => void) {
 
   return { schedule, cancel }
 }
+
+export function whenNextFrame(callback: () => void) {
+  const frame = requestAnimationFrame(() => callback())
+  return () => cancelAnimationFrame(frame)
+}

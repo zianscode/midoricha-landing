@@ -4,9 +4,7 @@ import { smoothstep } from '~/three/core/math'
 import { noise2 } from '~/three/core/noise'
 import { makeRng } from '~/three/core/random'
 import { createPowderMaterial } from '~/three/objects/matchaPowder'
-import { createBambooTexture } from '~/three/textures/bamboo'
-import { createGraniteTextures } from '~/three/textures/granite'
-import { createLeafTextures } from '~/three/textures/leaf'
+import { createBambooTexture, createGraniteTextures, createLeafTextures } from '~/three/textures'
 
 function lathe(points: [number, number][], segments = 96) {
   return new THREE.LatheGeometry(points.map(([x, y]) => new THREE.Vector2(x, y)), segments)

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { createBambooTexture } from '~/three/textures/bamboo'
+import { createBambooTexture } from '~/three/textures'
 
 const OUTER_RADIUS = 0.17
 const INNER_RADIUS = 0.152

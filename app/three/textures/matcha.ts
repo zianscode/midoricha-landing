@@ -1,7 +1,7 @@
-import { makeCanvas, toTexture } from '~/three/core/canvas'
+import { makeCanvas } from '~/three/core/canvas'
 import { makeRng } from '~/three/core/random'
 
-export function createPowderTextures(seed = 13) {
+export function paintPowder(seed = 13) {
   const S = 512
   const rand = makeRng(seed)
   const color = makeCanvas(S, S)
@@ -31,12 +31,12 @@ export function createPowderTextures(seed = 13) {
     bump.ctx.fillRect(x - r, y - r, r * 2, r * 2)
   }
   return {
-    map: toTexture(color.canvas, { repeat: true }),
-    bump: toTexture(bump.canvas, { color: false, repeat: true })
+    map: color.canvas,
+    bump: bump.canvas
   }
 }
 
-export function createFoamTextures(seed = 21) {
+export function paintFoam(seed = 21) {
   const S = 1024
   const rand = makeRng(seed)
   const color = makeCanvas(S, S)
@@ -79,7 +79,7 @@ export function createFoamTextures(seed = 21) {
   }
 
   return {
-    map: toTexture(color.canvas),
-    bump: toTexture(bump.canvas, { color: false })
+    map: color.canvas,
+    bump: bump.canvas
   }
 }

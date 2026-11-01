@@ -1,10 +1,10 @@
-import { makeCanvas, toTexture } from '~/three/core/canvas'
+import { makeCanvas } from '~/three/core/canvas'
 import { makeRng } from '~/three/core/random'
 
 const SIZE = 512
 const ROW_HEIGHT = 6
 
-export function createTatamiTextures(seed = 61) {
+export function paintTatami(seed = 61) {
   const rand = makeRng(seed)
   const color = makeCanvas(SIZE, SIZE)
   const bump = makeCanvas(SIZE, SIZE)
@@ -41,7 +41,7 @@ export function createTatamiTextures(seed = 61) {
   }
 
   return {
-    map: toTexture(color.canvas, { repeat: true }),
-    bump: toTexture(bump.canvas, { color: false, repeat: true })
+    map: color.canvas,
+    bump: bump.canvas
   }
 }

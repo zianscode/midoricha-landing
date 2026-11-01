@@ -1,7 +1,9 @@
-import { makeCanvas, toTexture } from '~/three/core/canvas'
+import { makeCanvas } from '~/three/core/canvas'
 import { makeRng } from '~/three/core/random'
 
-export function createBambooTexture(tone: 'pale' | 'aged' = 'pale', seed = 3) {
+export type BambooTone = 'pale' | 'aged'
+
+export function paintBamboo(tone: BambooTone = 'pale', seed = 3) {
   const W = 256
   const H = 1024
   const rand = makeRng(seed)
@@ -29,5 +31,5 @@ export function createBambooTexture(tone: 'pale' | 'aged' = 'pale', seed = 3) {
     ctx.fillStyle = g
     ctx.fillRect(x - 30, y - 30, 60, 60)
   }
-  return toTexture(canvas, { repeat: true })
+  return { map: canvas }
 }

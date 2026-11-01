@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { finishGeometry } from '~/three/core/geometry'
 import { smoothstep } from '~/three/core/math'
-import { createLeafTextures } from '~/three/textures/leaf'
+import { createLeafTextures } from '~/three/textures'
 
 export interface LeafShape {
   length?: number

@@ -2,8 +2,8 @@ import * as THREE from 'three'
 import { finishGeometry } from '~/three/core/geometry'
 import { smoothstep } from '~/three/core/math'
 import { makeRng } from '~/three/core/random'
-import { type GlazeName, createCeramicTextures } from '~/three/textures/ceramic'
-import { createFoamTextures } from '~/three/textures/matcha'
+import { createCeramicTextures, createFoamTextures } from '~/three/textures'
+import type { GlazeName } from '~/three/textures/ceramic'
 
 const PROFILE: [number, number][] = [
   [0.0, 0.035], [0.3, 0.035], [0.36, 0.012], [0.4, 0.0], [0.47, 0.0], [0.5, 0.025],

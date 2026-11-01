@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { getDeviceTier, hasFinePointer, prefersReducedMotion } from '~/utils/device'
 import { disposeObject } from '~/three/core/dispose'
 import { clamp, damp } from '~/three/core/math'
+import { prepareScene } from '~/three/core/prepare'
 
 export interface StageOptions {
   fov?: number
@@ -49,9 +50,11 @@ export class Stage {
   private pageVisible = true
   private dirty = true
   private disposed = false
+  private started = false
   private resizeObserver: ResizeObserver
   private intersectionObserver: IntersectionObserver
   private envTarget: THREE.WebGLRenderTarget | null = null
+  private environment: number
   private pixelRatio: number
   private minPixelRatio: number
   private frameTime = 0
@@ -69,6 +72,7 @@ export class Stage {
       alpha: true,
       powerPreference: 'high-performance'
     })
+    this.renderer.debug.checkShaderErrors = import.meta.dev
     this.pixelRatio = Math.min(window.devicePixelRatio, this.quality === 'high' ? 1.5 : 1.25)
     this.minPixelRatio = Math.min(this.pixelRatio, this.quality === 'high' ? 1 : 0.75)
     this.renderer.setPixelRatio(this.pixelRatio)
@@ -88,19 +92,7 @@ export class Stage {
 
     this.camera = new THREE.PerspectiveCamera(options.fov ?? 30, 1, options.near ?? 0.1, options.far ?? 100)
 
-    if (options.environment) {
-      const pmrem = new THREE.PMREMGenerator(this.renderer)
-      const room = new RoomEnvironment()
-      this.envTarget = pmrem.fromScene(room, 0.04)
-      this.scene.environment = this.envTarget.texture
-      this.scene.environmentIntensity = options.environment
-      room.traverse((o) => {
-        const m = o as THREE.Mesh
-        m.geometry?.dispose()
-        ;(m.material as THREE.Material | undefined)?.dispose()
-      })
-      pmrem.dispose()
-    }
+    this.environment = options.environment ?? 0
 
     this.resize()
     this.resizeObserver = new ResizeObserver(() => this.resize())
@@ -156,11 +148,11 @@ export class Stage {
     this.camera.aspect = w / h
     this.camera.updateProjectionMatrix()
     this.dirty = true
-    if (!this.raf) this.render(0)
+    if (this.started && !this.raf) this.render(0)
   }
 
   private updateLoop() {
-    const shouldRun = this.inView && this.pageVisible && !this.disposed
+    const shouldRun = this.started && this.inView && this.pageVisible && !this.disposed
     if (shouldRun && !this.raf) {
       this.last = performance.now()
       this.raf = requestAnimationFrame(this.tick)
@@ -190,7 +182,6 @@ export class Stage {
     if (average < 1 / 45) return
     this.pixelRatio = Math.max(this.minPixelRatio, this.pixelRatio - 0.25)
     this.renderer.setPixelRatio(this.pixelRatio)
-    this.renderer.setSize(this.width, this.height, false)
   }
 
   private render(delta: number) {
@@ -204,6 +195,30 @@ export class Stage {
     for (const cb of this.callbacks) cb(frame)
     this.renderer.render(this.scene, this.camera)
     this.dirty = false
+  }
+
+  private createEnvironment() {
+    if (!this.environment) return
+    const pmrem = new THREE.PMREMGenerator(this.renderer)
+    const room = new RoomEnvironment()
+    this.envTarget = pmrem.fromScene(room, 0.04)
+    this.scene.environment = this.envTarget.texture
+    this.scene.environmentIntensity = this.environment
+    room.traverse((o) => {
+      const m = o as THREE.Mesh
+      m.geometry?.dispose()
+      ;(m.material as THREE.Material | undefined)?.dispose()
+    })
+    pmrem.dispose()
+  }
+
+  async start() {
+    this.createEnvironment()
+    const prepared = await prepareScene(this.renderer, this.scene, this.camera, () => !this.disposed)
+    if (!prepared) return
+    this.started = true
+    this.render(0)
+    this.updateLoop()
   }
 
   dispose() {

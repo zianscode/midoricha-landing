@@ -9,7 +9,7 @@ import { createPowderMound } from '~/three/objects/matchaPowder'
 import { createNatsume } from '~/three/objects/natsume'
 import { createParticles } from '~/three/objects/particles'
 import { createSteam } from '~/three/objects/steam'
-import { createRadialAlpha } from '~/three/textures/masks'
+import { createRadialAlpha } from '~/three/textures'
 
 export const options: StageOptions = { fov: 26, shadows: true, environment: 0.12, exposure: 1.0 }
 

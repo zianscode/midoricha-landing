@@ -13,6 +13,41 @@ interface LazyStageOptions {
 
 const PRELOAD_MARGIN = '80% 0px'
 
+interface MountTurn {
+  element: HTMLElement
+  run: () => Promise<void>
+}
+
+const waiting: MountTurn[] = []
+let mounting = false
+
+function distanceToViewport(element: HTMLElement) {
+  const rect = element.getBoundingClientRect()
+  if (rect.bottom < 0) return -rect.bottom
+  return Math.max(0, rect.top - window.innerHeight)
+}
+
+function nextTurn() {
+  if (mounting || !waiting.length) return
+  waiting.sort((a, b) => distanceToViewport(a.element) - distanceToViewport(b.element))
+  const turn = waiting.shift()!
+  mounting = true
+  turn.run().finally(() => {
+    mounting = false
+    nextTurn()
+  })
+}
+
+function requestTurn(turn: MountTurn) {
+  waiting.push(turn)
+  const cancelSchedule = distanceToViewport(turn.element) === 0 ? whenNextFrame(nextTurn) : whenIdle(nextTurn)
+  return () => {
+    cancelSchedule()
+    const index = waiting.indexOf(turn)
+    if (index >= 0) waiting.splice(index, 1)
+  }
+}
+
 export function useLazyStage(
   target: Readonly<Ref<HTMLElement | null>>,
   load: () => Promise<StageBlueprint>,
@@ -22,7 +57,7 @@ export function useLazyStage(
   const enabled = ref(true)
   let stage: Stage | null = null
   let teardown: void | (() => void)
-  let cancelIdle: (() => void) | undefined
+  let cancelTurn: (() => void) | undefined
   let unmounted = false
 
   async function mount() {
@@ -33,7 +68,8 @@ export function useLazyStage(
     stage = new Stage(element, blueprint.options)
     teardown = blueprint.setup(stage)
     if (options.progress) stage.setProgress(options.progress.value)
-    requestAnimationFrame(() => (ready.value = true))
+    await stage.start()
+    if (!unmounted) ready.value = true
   }
 
   const { stop, resume } = useIntersectionObserver(
@@ -41,7 +77,10 @@ export function useLazyStage(
     ([entry]) => {
       if (!entry?.isIntersecting) return
       stop()
-      cancelIdle = whenIdle(() => mount().catch((error) => console.error('[scene]', error)))
+      cancelTurn = requestTurn({
+        element: entry.target as HTMLElement,
+        run: () => mount().catch((error) => console.error('[scene]', error))
+      })
     },
     { rootMargin: options.rootMargin ?? PRELOAD_MARGIN, immediate: false }
   )
@@ -56,7 +95,7 @@ export function useLazyStage(
   onBeforeUnmount(() => {
     unmounted = true
     stop()
-    cancelIdle?.()
+    cancelTurn?.()
     if (typeof teardown === 'function') teardown()
     stage?.dispose()
     stage = null

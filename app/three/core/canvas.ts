@@ -1,21 +1,18 @@
-import * as THREE from 'three'
+export type Paint2D = OffscreenCanvasRenderingContext2D
+export type PaintCanvas = OffscreenCanvas | HTMLCanvasElement
 
-export function makeCanvas(width: number, height: number) {
+function offscreen(width: number, height: number) {
+  if (typeof OffscreenCanvas === 'undefined') return null
+  const canvas = new OffscreenCanvas(width, height)
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  return ctx ? { canvas, ctx } : null
+}
+
+export function makeCanvas(width: number, height: number): { canvas: PaintCanvas; ctx: Paint2D } {
+  const painted = offscreen(width, height)
+  if (painted) return painted
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
-  const ctx = canvas.getContext('2d')!
-  return { canvas, ctx }
-}
-
-export function toTexture(
-  canvas: HTMLCanvasElement,
-  { color = true, repeat = false }: { color?: boolean; repeat?: boolean } = {}
-) {
-  const texture = new THREE.CanvasTexture(canvas)
-  if (color) texture.colorSpace = THREE.SRGBColorSpace
-  texture.anisotropy = 4
-  if (repeat) texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-  texture.needsUpdate = true
-  return texture
+  return { canvas, ctx: canvas.getContext('2d') as unknown as Paint2D }
 }

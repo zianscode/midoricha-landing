@@ -1,7 +1,7 @@
-import { makeCanvas, toTexture } from '~/three/core/canvas'
+import { makeCanvas } from '~/three/core/canvas'
 import { makeRng } from '~/three/core/random'
 
-export function createGraniteTextures(seed = 9) {
+export function paintGranite(seed = 9) {
   const W = 1024
   const H = 512
   const rand = makeRng(seed)
@@ -40,7 +40,7 @@ export function createGraniteTextures(seed = 9) {
   color.ctx.globalAlpha = 1
 
   return {
-    map: toTexture(color.canvas, { repeat: true }),
-    bump: toTexture(bump.canvas, { color: false, repeat: true })
+    map: color.canvas,
+    bump: bump.canvas
   }
 }

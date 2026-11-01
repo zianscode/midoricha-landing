@@ -15,6 +15,9 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
     optimizeDeps: {
       include: ['three', 'lenis']
+    },
+    worker: {
+      format: 'es'
     }
   },
   app: {

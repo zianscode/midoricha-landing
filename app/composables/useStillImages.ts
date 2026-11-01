@@ -12,11 +12,18 @@ export function useStillImages(target: Readonly<Ref<HTMLElement | null>>, kinds:
   const images = ref<Partial<Record<StillKind, string>>>({})
   const enabled = ref(true)
   let cancelIdle: (() => void) | undefined
+  let unmounted = false
+
+  function release(urls: Partial<Record<StillKind, string>>) {
+    Object.values(urls).forEach((url) => URL.revokeObjectURL(url))
+  }
 
   async function render(tier: keyof typeof STILL_SIZE) {
     const { renderStills } = await import('~/three/stills/renderStills')
     const [width, height] = STILL_SIZE[tier]
-    images.value = await renderStills(kinds, width, height)
+    const rendered = await renderStills(kinds, width, height)
+    if (unmounted) release(rendered)
+    else images.value = rendered
   }
 
   const { stop } = useIntersectionObserver(
@@ -34,7 +41,11 @@ export function useStillImages(target: Readonly<Ref<HTMLElement | null>>, kinds:
     { rootMargin: PRELOAD_MARGIN }
   )
 
-  onBeforeUnmount(() => cancelIdle?.())
+  onBeforeUnmount(() => {
+    unmounted = true
+    cancelIdle?.()
+    release(images.value)
+  })
 
   return { images, enabled }
 }

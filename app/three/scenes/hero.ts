@@ -8,7 +8,7 @@ import { createBotanicalKit, createLeaf } from '~/three/objects/matchaLeaf'
 import { createPowderMound } from '~/three/objects/matchaPowder'
 import { createParticles } from '~/three/objects/particles'
 import { createTeaBranch } from '~/three/objects/teaBranch'
-import { createRadialAlpha } from '~/three/textures/masks'
+import { createRadialAlpha } from '~/three/textures'
 
 export const options: StageOptions = { fov: 24, shadows: true, environment: 0.4, exposure: 1.02 }
 

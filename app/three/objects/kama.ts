@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { createIronTextures } from '~/three/textures/iron'
+import { createIronTextures } from '~/three/textures'
 
 const BODY_PROFILE: [number, number][] = [
   [0, 0.02], [0.55, 0.02], [0.82, 0.12], [1.02, 0.36], [1.06, 0.55], [0.98, 0.78],

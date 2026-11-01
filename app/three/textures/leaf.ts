@@ -1,7 +1,7 @@
-import { makeCanvas, toTexture } from '~/three/core/canvas'
+import { type Paint2D, makeCanvas } from '~/three/core/canvas'
 import { type Rng, makeRng } from '~/three/core/random'
 
-function leafVeins(ctx: CanvasRenderingContext2D, W: number, H: number, rand: Rng, style: 'color' | 'bump') {
+function leafVeins(ctx: Paint2D, W: number, H: number, rand: Rng, style: 'color' | 'bump') {
   const cx = W / 2
   const isBump = style === 'bump'
 
@@ -47,7 +47,7 @@ function leafVeins(ctx: CanvasRenderingContext2D, W: number, H: number, rand: Rn
   }
 }
 
-export function createLeafTextures(seed = 7) {
+export function paintLeaf(seed = 7) {
   const W = 512
   const H = 1024
   const rand = makeRng(seed)
@@ -100,12 +100,14 @@ export function createLeafTextures(seed = 7) {
     bump.ctx.fillStyle = g
     bump.ctx.fillRect(x - r, y - r, r * 2, r * 2)
   }
+  const veins = makeCanvas(W, H)
+  leafVeins(veins.ctx, W, H, makeRng(seed + 11), 'bump')
   bump.ctx.filter = 'blur(1.5px)'
-  leafVeins(bump.ctx, W, H, makeRng(seed + 11), 'bump')
+  bump.ctx.drawImage(veins.canvas, 0, 0)
   bump.ctx.filter = 'none'
 
   return {
-    map: toTexture(canvas),
-    bump: toTexture(bump.canvas, { color: false })
+    map: canvas,
+    bump: bump.canvas
   }
 }

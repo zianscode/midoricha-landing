@@ -1,10 +1,10 @@
-import { makeCanvas, toTexture } from '~/three/core/canvas'
+import { makeCanvas } from '~/three/core/canvas'
 import { makeRng } from '~/three/core/random'
 
 const SIZE = 512
 const DOT_SPACING = 18
 
-export function createIronTextures(seed = 71) {
+export function paintIron(seed = 71) {
   const rand = makeRng(seed)
   const color = makeCanvas(SIZE, SIZE)
   const bump = makeCanvas(SIZE, SIZE)
@@ -42,7 +42,7 @@ export function createIronTextures(seed = 71) {
   }
 
   return {
-    map: toTexture(color.canvas, { repeat: true }),
-    bump: toTexture(bump.canvas, { color: false, repeat: true })
+    map: color.canvas,
+    bump: bump.canvas
   }
 }
